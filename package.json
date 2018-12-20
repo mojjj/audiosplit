@@ -1,0 +1,22 @@
+{
+  "name": "audiosplit",
+  "version": "1.0.0",
+  "description": "batch split large audiofiles by config file definition",
+  "main": "audiosplit.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mojjj/audiosplit.git"
+  },
+  "author": "Moritz Bahr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mojjj/audiosplit/issues"
+  },
+  "homepage": "https://github.com/mojjj/audiosplit#readme",
+  "dependencies": {
+    "fs": "0.0.1-security"
+  }
+}

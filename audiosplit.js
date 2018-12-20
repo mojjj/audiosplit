@@ -20,11 +20,9 @@ CronosEpic.mp3
 
 const fs = require('fs');
 let splitterConfig = {
-  audioFileName: '',
-  data: [],
+    audioFileName: '',
+    data: [],
 };
-
-
 
 const configfilename = process.argv[2];
 console.log('reading file config from', configfilename);
@@ -32,106 +30,72 @@ console.log('reading file config from', configfilename);
 const lines = require('fs').readFileSync(configfilename, 'utf-8').split('\n');
 
 lines.forEach(function (line) {
-  if (line !== '') {
-    if (line.includes('.mp3')) {
-      splitterConfig.audioFileName = line.trim();
-    } else {
-      const startTime = line.split(/ (.+)/)[0].trim();
-      const title = line.split(/ (.+)/)[1].trim();
-      splitterConfig.data.push({startTime, name: title, trackLength: ''});
+    if (line !== '') {
+        if (line.includes('.mp3')) {
+            splitterConfig.audioFileName = line.trim();
+        } else {
+            const startTime = line.split(/ (.+)/)[0].trim();
+            const title = line.split(/ (.+)/)[1].trim();
+            splitterConfig.data.push({startTime, name: title, trackLength: ''});
+        }
     }
-  }
 });
 
 
-
 for (let i = 0; i < splitterConfig.data.length; i++) {
-  //console.log('currentIndex', i, ' data:', splitterConfig.data[i]);
-if (i+1 > splitterConfig.data.length-1){
-splitterConfig.data[i].trackLength = '9001';
-} else {
-  splitterConfig.data[i].trackLength = calcLength(splitterConfig.data[i].startTime, splitterConfig.data[i+1].startTime);
-
-
-}
-
+    if (i + 1 > splitterConfig.data.length - 1) {
+        splitterConfig.data[i].trackLength = '9001';
+    } else {
+        splitterConfig.data[i].trackLength = calcLength(splitterConfig.data[i].startTime, splitterConfig.data[i + 1].startTime);
+    }
 }
 
 //console.dir(splitterConfig);
-let splitterCmd = ''
-splitterConfig.data.forEach(function(track) {
-splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime  + ' -t ' + track.trackLength + ' ' + track.name;
-console.log(splitterCmd);
+let splitterCmd = '';
+splitterConfig.data.forEach(function (track) {
+    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' ' + track.name;
+    console.log(splitterCmd);
 
-let exec = require('child_process').exec, child;
-child = exec(splitterCmd,
-    function (error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-        console.log('stderr: ' + stderr);
-        if (error !== null) {
-             console.log('exec error: ' + error);
-        }
-    });
- child();
-})
-
-
-
-
-
-
+    let exec = require('child_process').exec, child;
+    child = exec(splitterCmd,
+        function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+            if (error !== null) {
+                console.log('exec error: ' + error);
+            }
+        });
+    child();
+});
 
 function calcLength(start, end) {
-  let trackLength= timeToSeconds(end)-timeToSeconds(start)
-return trackLength;
+    let trackLength = timeToSeconds(end) - timeToSeconds(start);
+    return trackLength;
 }
 
 function timeToSeconds(time) {
-	let sArr = time.split(':');
-	let ts ={hour:0,minute:0,second:0}
+    let sArr = time.split(':');
+    let ts = {hour: 0, minute: 0, second: 0};
 
-	switch (sArr.length) {
-		case 3:
-		   	ts.hour = parseInt(sArr[0], 10);
-		   	ts.minute = parseInt(sArr[1], 10);
-		   	ts.second = parseInt(sArr[2], 10);
-		break;
-		case 2:
-		   	ts.minute = parseInt(sArr[0], 10);
-		   	ts.second = parseInt(sArr[1], 10);
-		break;
-		case 1:
-		   	ts.second = parseInt(sArr[0], 10);
-		break;
-		default:
-		console.log('wrong format?');
-	}
-	return toSeconds(ts).toString();
+    switch (sArr.length) {
+        case 3:
+            ts.hour = parseInt(sArr[0], 10);
+            ts.minute = parseInt(sArr[1], 10);
+            ts.second = parseInt(sArr[2], 10);
+            break;
+        case 2:
+            ts.minute = parseInt(sArr[0], 10);
+            ts.second = parseInt(sArr[1], 10);
+            break;
+        case 1:
+            ts.second = parseInt(sArr[0], 10);
+            break;
+        default:
+            console.log('wrong format?');
+    }
+    return toSeconds(ts).toString();
 }
-
 
 function toSeconds(time) {
-	return time.hour*60*60 + time.minute*60 + time.second
+    return time.hour * 60 * 60 + time.minute * 60 + time.second
 }
-
-// var  pieces = "8:19:02".split(':')
-// hour, minute, second;
-//
-// if(pieces.length === 3) {
-//   hour = parseInt(pieces[0], 10);
-//   minute = parseInt(pieces[1], 10);
-//   second = parseInt(pieces[2], 10);
-// }
-
-// ########
-
-// var
-//
-// var time = "8:19:02".split(':');
-//
-// var d = new Date(); // creates a Date Object using the clients current time
-//
-// d.setHours  (+time[0]); // set Time accordingly, using implicit type coercion
-// d.setMinutes( time[1]); // you can pass Number or String, it doesn't matter
-// d.setSeconds( time[2]);
-
