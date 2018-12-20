@@ -3,7 +3,7 @@ const shell = require('shelljs');
 
 if (process.argv.length < 3) {
     console.log('missing config file parameter');
-    console.log('usage: node audiosplit sampleConfig.txt');
+    console.log('usage: node audiosplit.js sampleConfig.txt');
     process.exit(1);
 }
 
@@ -12,7 +12,7 @@ let splitterConfig = {
     data: [],
 };
 
-// read config file
+// read config file and create config object
 const configFileName = process.argv[2];
 console.log('reading file config from', configFileName);
 const lines = fs.readFileSync(configFileName, 'utf-8').split('\n');
@@ -28,7 +28,7 @@ lines.forEach(function (line, idx) {
     }
 });
 
-
+// calculate lengths for tracks and update config object
 for (let i = 0; i < splitterConfig.data.length; i++) {
     if (i + 1 > splitterConfig.data.length - 1) {
         splitterConfig.data[i].trackLength = '9001';
@@ -37,10 +37,9 @@ for (let i = 0; i < splitterConfig.data.length; i++) {
     }
 }
 
-//console.dir(splitterConfig);
+// do the actual splitting
 let splitterCmd = '';
 shell.exec('mkdir -p output');
-
 splitterConfig.data.forEach(function (track) {
     splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' -y output/' + track.name;
     console.log(splitterCmd);
@@ -52,6 +51,8 @@ splitterConfig.data.forEach(function (track) {
     }
 });
 
+// ####################################
+// helpers
 function calcLength(start, end) {
     return timeToSeconds(end) - timeToSeconds(start);
 }
@@ -74,6 +75,7 @@ function timeToSeconds(tString) {
             break;
         default:
             console.log('wrong format (required HH:mm:ss)? given: ', tString);
+            ts = {};
     }
     return toSeconds(ts).toString();
 }
