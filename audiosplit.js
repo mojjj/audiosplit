@@ -17,13 +17,13 @@ let splitterConfig = {
 const configFileName = process.argv[2];
 console.log('reading file config from', configFileName);
 const lines = fs.readFileSync(configFileName, 'utf-8').split('\n');
-lines.forEach(function (line) {
+lines.forEach(function (line, idx) {
     if (line !== '') {
         if (line.includes('.mp3')) {
             splitterConfig.audioFileName = line.trim();
         } else {
             const startTime = line.split(/ (.+)/)[0].trim();
-            const title = line.split(/ (.+)/)[1].trim().replace(/ /gi, '_') + '.mp3';
+            const title = idx + '_' + line.split(/ (.+)/)[1].trim().replace(/ /gi, '_') + '.mp3';
             splitterConfig.data.push({startTime, name: title, trackLength: ''});
         }
     }
@@ -43,7 +43,7 @@ let splitterCmd = '';
 shell.exec('mkdir -p output');
 
 splitterConfig.data.forEach(function (track) {
-    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' output/' + track.name;
+    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' -y output/' + track.name;
     console.log(splitterCmd);
 
     let child = shell.exec(splitterCmd, {async: true});
@@ -51,7 +51,6 @@ splitterConfig.data.forEach(function (track) {
         console.log('something went wrong for ', splitterCmd);
         console.log(child.stderr);
     }
-
 });
 
 function calcLength(start, end) {
