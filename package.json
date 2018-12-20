@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/mojjj/audiosplit#readme",
   "dependencies": {
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "shelljs": "^0.8.3"
   }
 }

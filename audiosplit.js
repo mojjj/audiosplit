@@ -1,41 +1,29 @@
-/*
-config file format
-
-CronosEpic.mp3
-00:00 Meraki
-03:11 Czar
-06:40 Cronos
-10:01 Hiraeth
-12:59 Voyager
-16:18 Argonaut
-20:00 Oblivion
-23:26 Lords Of Arkhmar
-26:35 Shadow King
-29:46 Lords Of Arkhmar
-33:10 Hyde
-36:14 Devils Advocate
-39:40 Cronos Chamber Mix
- */
-
-
 const fs = require('fs');
+const shell = require('shelljs');
+
+if (process.argv.length < 3) {
+    console.log('missing config file parameter');
+    console.log('usage: node audiosplit sampleConfig.txt');
+    process.exit(1);
+}
+
+
 let splitterConfig = {
     audioFileName: '',
     data: [],
 };
 
-const configfilename = process.argv[2];
-console.log('reading file config from', configfilename);
-
-const lines = require('fs').readFileSync(configfilename, 'utf-8').split('\n');
-
+// read config file
+const configFileName = process.argv[2];
+console.log('reading file config from', configFileName);
+const lines = fs.readFileSync(configFileName, 'utf-8').split('\n');
 lines.forEach(function (line) {
     if (line !== '') {
         if (line.includes('.mp3')) {
             splitterConfig.audioFileName = line.trim();
         } else {
             const startTime = line.split(/ (.+)/)[0].trim();
-            const title = line.split(/ (.+)/)[1].trim();
+            const title = line.split(/ (.+)/)[1].trim().replace(/ /gi, '_') + '.mp3';
             splitterConfig.data.push({startTime, name: title, trackLength: ''});
         }
     }
@@ -52,50 +40,46 @@ for (let i = 0; i < splitterConfig.data.length; i++) {
 
 //console.dir(splitterConfig);
 let splitterCmd = '';
+shell.exec('mkdir -p output');
+
 splitterConfig.data.forEach(function (track) {
-    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' ' + track.name;
+    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' output/' + track.name;
     console.log(splitterCmd);
 
-    let exec = require('child_process').exec, child;
-    child = exec(splitterCmd,
-        function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
-            if (error !== null) {
-                console.log('exec error: ' + error);
-            }
-        });
-    child();
+    let child = shell.exec(splitterCmd, {async: true});
+    if (child.exitCode !== 0) {
+        console.log('something went wrong for ', splitterCmd);
+        console.log(child.stderr);
+    }
+
 });
 
 function calcLength(start, end) {
-    let trackLength = timeToSeconds(end) - timeToSeconds(start);
-    return trackLength;
+    return timeToSeconds(end) - timeToSeconds(start);
 }
 
-function timeToSeconds(time) {
-    let sArr = time.split(':');
+function timeToSeconds(tString) {
+    let timeArr = tString.split(':');
     let ts = {hour: 0, minute: 0, second: 0};
-
-    switch (sArr.length) {
+    switch (timeArr.length) {
         case 3:
-            ts.hour = parseInt(sArr[0], 10);
-            ts.minute = parseInt(sArr[1], 10);
-            ts.second = parseInt(sArr[2], 10);
+            ts.hour = parseInt(timeArr[0], 10);
+            ts.minute = parseInt(timeArr[1], 10);
+            ts.second = parseInt(timeArr[2], 10);
             break;
         case 2:
-            ts.minute = parseInt(sArr[0], 10);
-            ts.second = parseInt(sArr[1], 10);
+            ts.minute = parseInt(timeArr[0], 10);
+            ts.second = parseInt(timeArr[1], 10);
             break;
         case 1:
-            ts.second = parseInt(sArr[0], 10);
+            ts.second = parseInt(timeArr[0], 10);
             break;
         default:
-            console.log('wrong format?');
+            console.log('wrong format (required HH:mm:ss)? given: ', tString);
     }
     return toSeconds(ts).toString();
 }
 
-function toSeconds(time) {
-    return time.hour * 60 * 60 + time.minute * 60 + time.second
+function toSeconds(ts) {
+    return ts.hour * 60 * 60 + ts.minute * 60 + ts.second
 }
