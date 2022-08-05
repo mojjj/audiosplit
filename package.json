@@ -19,5 +19,10 @@
   "dependencies": {
     "fs": "0.0.1-security",
     "shelljs": "^0.8.5"
+  },
+  "engines": {
+    "node": ">=14.x.x",
+    "yarn": "YARN is deprecated, please use npm",
+    "npm": ">=6.x.x"
   }
 }
