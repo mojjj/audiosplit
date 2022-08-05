@@ -39,16 +39,13 @@ for (let i = 0; i < splitterConfig.data.length; i++) {
 
 // do the actual splitting
 let splitterCmd = '';
-shell.exec('mkdir -p output');
+shell.exec('mkdir -p \'output/' + splitterConfig.audioFileName + '\'');
 splitterConfig.data.forEach(function (track) {
-    splitterCmd = 'avconv -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' -y output/' + track.name;
+    const filename = track.name.replace(/[^a-z0-9.\-()]/gi, '_')
+    splitterCmd = 'ffmpeg -i ' + splitterConfig.audioFileName + ' -ss ' + track.startTime + ' -t ' + track.trackLength + ' \'output/' + splitterConfig.audioFileName + '/' + filename + '\'';
     console.log(splitterCmd);
 
-    let child = shell.exec(splitterCmd, {async: true});
-    if (child.exitCode !== 0) {
-        console.log('something went wrong for ', splitterCmd);
-        console.log(child.stderr);
-    }
+   shell.exec(splitterCmd, {async: true});
 });
 
 // ####################################
